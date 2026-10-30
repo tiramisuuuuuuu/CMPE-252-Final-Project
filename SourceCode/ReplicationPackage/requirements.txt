@@ -1,0 +1,12 @@
+setuptools==80.9.0
+wheel==0.45.1
+matplotlib==3.5.3
+mistralai==1.5.2
+numpy==1.24.3
+openai==1.67.0
+openpyxl==3.1.5
+pandas==2.2.3
+protobuf==6.30.1
+python-dotenv==1.0.1
+scikit_learn==1.6.1
+seaborn==0.13.2
