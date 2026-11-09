@@ -120,7 +120,7 @@ def main():
         n=args.n,
         model=args.model,
         temperature=args.temperature,
-        sleep_time=args.sleep_time
+        sleep_time=args.sleep_time,
     )
 
 if __name__ == "__main__":

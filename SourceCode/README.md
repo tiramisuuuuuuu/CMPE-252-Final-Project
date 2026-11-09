@@ -159,6 +159,9 @@ Annotate emotions using the `annotate_emotions.py` script. For instance, for GPT
 
 ```python ./code/llm_annotation/annotate_emotions_openai.py --input ./data/ground-truth-small.xlsx --output ./data/annotations/llm/temperature-00/ --batch_size 10 --model gpt-4o --temperature 0 --sleep_time 10```
 
+(SM)
+```python ./code/llm_annotation/annotate_emotions_gemini.py --input ./data/ground-truth-small.xlsx --output ./data/annotations/llm/temperature-00/ --batch_size 10 --model gemini-3.8-flash --temperature 0 --sleep_time 10```
+
 For annotating the whole dataset with all providers, run the following commands (**IMPORTANT**: this will take more than 60 minutes due to OpenAI, Mistral and Gemini consumption times!):
 
 ```python ./code/llm_annotation/annotate_emotions_openai.py --input ./data/ground-truth.xlsx --output ./data/annotations/llm/temperature-00/ --batch_size 10 --model gpt-4o --temperature 0 --sleep_time 10```

@@ -116,7 +116,7 @@ class EmotionAnnotator(ABC):
             batch_data = [{"review": row['review'], "sentence": row['sentence']} 
                          for _, row in batch.iterrows()]
             
-            annotations_list, usage_metadata = self.get_annotation(batch_data, **kwargs)
+            annotations_list, usage_metadata = self.get_annotation(batch_data, model=model, **kwargs)
 
             # Update metrics
             batch_metrics = {
