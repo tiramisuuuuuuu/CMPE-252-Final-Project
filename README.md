@@ -1,73 +1,72 @@
 # Fine-Grained Emotion Classification in Mobile App Reviews
 
-**Reproduction of published human/LLM evaluations and classical machine-learning extensions for eight-emotion classification.**
+Reproduction of published human and large language model (LLM) evaluations, followed by supervised machine learning experiments for multi-label emotion classification.
 
-This project studies emotions expressed in mobile-app reviews. It reproduces the released results from [*What About Emotions? Guiding Fine-Grained Emotion Extraction from Mobile App Reviews*](https://doi.org/10.1109/RE63999.2025.00012), then evaluates TF-IDF-based Logistic Regression and Linear SVM models.
+This project builds on *What About Emotions? Guiding Fine-Grained Emotion Extraction from Mobile App Reviews*. It investigates eight emotions in app-review sentences, compares classical classifiers, and evaluates class weighting and emotion-specific thresholds. An interactive demonstration accepts a new review and returns predicted emotions.
 
-The current sequential implementation completes **Experiments 1–4**. **Experiment 5 remains pending.**
+**Contributors:** Shraddha Debata, Sreya, and Jaspreet.
 
-**Project contributors:** Shraddha Debata, Sreya Mathew, and Jaspreet Aujla.
+**Current status:** Experiments 1–5 are implemented, and Experiment 6 provides interactive inference. Threshold tuning improves validation F1 but reduces test F1. Training diagnostics also show a substantial generalization gap for the SVM models.
 
-## Table of Contents
+> **Results provenance:** The primary results below come from the saved outputs in `Emotion_Classification_Project_3.ipynb`, reviewed on November 24, 2026. They supersede figures from earlier project snapshots. A separate local diagnostic rerun is explicitly identified and is not substituted for the notebook's recorded results.
 
-- [Project Overview](#project-overview)
-- [Current Status](#current-status)
+## Contents
+
+- [Project objectives](#project-objectives)
+- [Experiments and status](#experiments-and-status)
 - [Dataset](#dataset)
-- [Experimental Design](#experimental-design)
+- [Evaluation protocol](#evaluation-protocol)
+- [Experimental methods](#experimental-methods)
 - [Results](#results)
-- [Repository Structure](#repository-structure)
-- [Getting Started](#getting-started)
-- [Outputs and Saved Models](#outputs-and-saved-models)
-- [Validation](#validation)
-- [Limitations](#limitations)
-- [Remaining Work](#remaining-work)
-- [References and Attribution](#references-and-attribution)
+- [Overfitting assessment](#overfitting-assessment)
+- [Running the project](#running-the-project)
+- [Interactive review classification](#interactive-review-classification)
+- [Files and outputs](#files-and-outputs)
+- [Verification and reproducibility](#verification-and-reproducibility)
+- [Limitations and remaining work](#limitations-and-remaining-work)
+- [References and attribution](#references-and-attribution)
 
-## Project Overview
+## Project Objectives
 
-Traditional sentiment analysis labels reviews as positive, negative, or neutral. This project examines more specific emotions to distinguish praise, disappointment, concern, rejection, and expectations about app features.
+1. Reproduce the released dataset statistics and document differences from the paper.
+2. Recalculate human agreement and LLM performance from the authors' saved annotations.
+3. Compare a training-prevalence baseline, Logistic Regression, and Linear SVM.
+4. Investigate whether balanced class weights improve rare-emotion recognition.
+5. Optimize emotion-specific thresholds on validation data and measure their effect on test performance.
+6. Demonstrate predictions for a user-entered review without retraining.
 
-The project has two tracks:
+The paper-reproduction track evaluates **ten annotation labels on all 1,112 records**. The supervised extension evaluates **eight emotion labels on a separate test partition**. These scores use different evaluation populations and should not be treated as a direct ML-versus-LLM comparison.
 
-1. **Paper reproduction:** use the authors' released human and LLM annotations to recompute dataset statistics, agreement scores, classification metrics, figures, and historical time/cost estimates.
-2. **Supervised extension:** train and evaluate classical models on eight emotion labels, then investigate whether balanced class weights improve recognition of rare emotions.
+## Experiments and Status
 
-> The reproduction track uses ten annotation labels and the full dataset. The supervised track uses eight emotion labels and a held-out test set. Their aggregate scores must not be compared directly as if they represented the same evaluation.
-
-## Current Status
-
-| Experiment | Status | Implemented work |
+| Experiment | Status | Main outputs |
 | --- | --- | --- |
-| **1. Original dataset statistics** | ✅ Complete | Dataset size, normalized app counts, label frequencies, multi-label records, duplicates, and published-versus-released comparisons |
-| **2. Published human/LLM metrics** | ✅ Complete using released annotations | Nine LLM runs, two-stage voting, human/LLM Cohen's kappa, reproduced figures, Tables 1–6, historical cost estimates, and comparison tables |
-| **3. ML emotion classification** | ✅ Complete | Training-prevalence baseline, diagnostic baselines, eight-label LR/SVM models, a bounded validation search, per-emotion metrics, and computational-efficiency tables |
-| **4. Rare-emotion improvement** | ✅ Complete | Controlled unweighted-versus-balanced comparison of the Experiment 3 winner, rare-label results, and validation-based selection for the next experiment |
-| **5. Emotion-specific thresholds** |  Pending | Validation-only cutoff optimization with a precision constraint and default-versus-tuned test comparisons |
+| **1. Dataset reproduction** | Implemented; saved outputs present | Dataset statistics, label frequencies, multi-label counts, duplicate analysis, and published-versus-released comparisons |
+| **2. Published LLM metrics** | Implemented; saved outputs present | Tables 1–6, agreement calculations, proposal Figures 3–4, historical cost analysis, and comparison tables |
+| **3. ML classification** | Implemented; saved outputs present | Bounded LR/SVM search, baseline comparison, per-emotion precision/recall/F1, timing, and model sizes |
+| **4. Rare-emotion classification** | Implemented; saved outputs present | Unweighted-versus-balanced SVM comparison and validation-selected model |
+| **5. Threshold optimization** | Implemented; saved outputs present | Frozen emotion-specific cutoffs, constraint status, default-versus-tuned metrics, and rare-label analysis |
+| **6. Interactive classification** | Implemented; saved example present | Review input and predicted emotions; a small output-labeling issue is documented below |
 
-The canonical notebook for this stage is:
-
-[`Emotion_Classification_Project_3_Experiments_3_4_Completed.ipynb`](Emotion_Classification_Project_3_Experiments_3_4_Completed.ipynb)
-
-Earlier exploratory notebooks may use different splits or label sets. The supervised results reported below come from the current sequential Experiment 3/4 implementation.
+Implementation does not imply that a proposed improvement succeeded. Experiment 5 is a completed experiment with a negative overall test-set result.
 
 ## Dataset
 
-The original dataset and replication resources are available through [Figshare](https://doi.org/10.6084/m9.figshare.28548638).
+The released annotations describe mobile-app review sentences across ten Google Play categories.
 
-| Property | Released dataset |
+| Property | Value |
 | --- | ---: |
 | Annotated records | 1,112 |
 | Distinct sentence strings | 1,108 |
 | Raw application names | 259 |
-| Application names after Unicode, spacing, and case normalization | 257 |
-| Google Play categories | 10 |
-| Positive annotation labels across all ten columns | 1,274 |
-| Records with multiple annotation labels across all ten columns | 157 |
-| Records with multiple labels among the eight emotions only | 153 |
+| Normalized application names | 257 |
+| Positive labels across all ten annotation columns | 1,274 |
+| Multi-label records across all ten columns | 157 |
+| Multi-label records among the eight emotions | 153 |
 
-### Labels and published-count differences
+### Label Frequencies
 
-| Label | Published count | Released count | Difference |
+| Label | Paper | Released dataset | Difference |
 | --- | ---: | ---: | ---: |
 | Joy | 372 | 372 | 0 |
 | Trust | 151 | 152 | +1 |
@@ -81,230 +80,235 @@ The original dataset and replication resources are available through [Figshare](
 | Reject | 22 | 22 | 0 |
 | **Total** | **1,272** | **1,274** | **+2** |
 
-The released annotations are preserved. No labels are removed to force agreement with the paper's printed counts.
+The released labels remain unchanged. Differences are reported rather than removed to force agreement with the paper.
 
-### Supervised data policy
-
-The supervised target columns are:
+### Supervised Targets
 
 ```text
 Joy, Trust, Fear, Surprise, Sadness, Disgust, Anger, Anticipation
 ```
 
-- Exclude all **22 Reject-marked records** from the supervised track, including two Reject+emotion conflicts. This is a documented conservative policy, not an annotation correction.
-- Keep **86 Neutral-only records** as eight-zero emotion targets.
-- Preserve emotion labels on the two mixed Neutral+emotion records.
-- Preserve the existing grouped split membership when applying these exclusions.
-- Keep the original 1,112-row, ten-label dataset for paper reproduction.
+The supervised track excludes all 22 Reject-marked records while preserving their original partition membership. It retains 86 Neutral-only records as eight-zero targets and keeps emotion labels on the two mixed Neutral-plus-emotion records. Neutral and Reject are not separate supervised outputs.
 
-| Partition | Before supervised exclusions | Experiment 3/4 rows |
+An empty set of predicted emotions means **“No predicted emotion,” not confirmed Neutral**.
+
+## Evaluation Protocol
+
+### Partitions and Leakage Checks
+
+Records sharing a review ID or normalized sentence are joined into connected groups. Grouped splitting with seed 42 creates the train, validation, and test partitions. Reject exclusions are applied afterward.
+
+| Partition | Original records | Eligible supervised records |
 | --- | ---: | ---: |
 | Training | 775 | 761 |
 | Validation | 169 | 166 |
 | Test | 168 | 163 |
 | **Total** | **1,112** | **1,090** |
 
-A prediction containing no emotion is **not proof of Neutral**. The supervised models do not train separate Neutral or Reject detectors.
+The later Experiment 3 preparation code checks record identities, review/text separation, and connected-group separation. It also screens long texts for conservative lexical near duplicates using three-word-shingle Jaccard similarity of at least 0.95.
 
-## Experimental Design
+TF-IDF and classifiers are fitted on training data only. Validation selects configurations, class weighting, and thresholds. Test labels are used for reporting after the corresponding choices are frozen.
 
-### Experiment 1: Reproducing Dataset Statistics
+The earlier exploratory ten-label models use a different random 80/20 split. Their scores are historical exploration, not the supervised benchmark reported here. Creating a grouped split later does not retroactively change those earlier models.
 
-Load the released ground truth and verify the number of records, application names, categories, annotation labels, repeated texts, and multi-label examples. Export comparisons with the paper's reported statistics and retain the observed discrepancies.
+### Metrics
 
-### Experiment 2: Reproducing Published LLM Metrics
+The supervised experiments use standard precision, recall, and F1 for each emotion, alongside micro-F1, macro-F1, rare-emotion macro-F1, and Hamming loss where reported. Undefined precision/recall is reported as zero through `zero_division=0`.
 
-Use the authors' saved temperature-zero predictions from:
+- **Micro-F1:** aggregates label-level decisions across records and emotions.
+- **Macro-F1:** averages the eight emotion-specific F1 scores equally.
+- **Rare-emotion macro-F1:** averages Fear, Anger, Disgust, and Surprise.
+- **Hamming loss:** fraction of individual label decisions that are incorrect; lower is better.
 
-- GPT-4o: three runs.
-- Mistral Large: three runs.
-- Gemini 2.0 Flash: three runs.
+The paper-reproduction code retains inferred paper-specific aggregation conventions separately. In particular, some human-table “F1” values are reproduced by an arithmetic mean of precision and recall. That is not standard F1; the new supervised experiments use standard F1 throughout.
 
-Rebuild agreement in two stages:
+## Experimental Methods
 
-1. Keep a label when at least **two of three runs within a model** agree.
-2. Keep a label when at least **two of the three model consensuses** agree.
+### Experiment 1: Dataset Reproduction
 
-Do not replace this hierarchy with a single vote across nine runs. Preserve the **39 records without a combined consensus label**.
+Validate record counts, missing sentences, application/category counts, label totals, duplicate texts, and multi-label examples. Compare measured values with the paper and retain documented discrepancies.
 
-Reproduction includes the human-agreement evolution chart and human/LLM agreement heatmap embedded as Figures 3 and 4 in the proposal. Pairwise kappa is calculated within shared annotation iterations and then averaged. Missing human pairs remain missing rather than being filled with zero agreement.
+### Experiment 2: Published Human and LLM Evaluations
 
-Metrics are recomputed from annotations. Printed paper values are comparison targets, not substitutes for measured results. No new LLM/API generations are needed.
+Load the authors' saved annotations for GPT-4o, Mistral Large, and Gemini 2.0 Flash, using three temperature-zero runs per model.
 
-### Experiment 3: Machine Learning Emotion Classification
+Combine predictions with two-stage majority voting:
 
-Compare three main approaches:
+1. Retain each label supported by at least two of a model's three runs.
+2. Retain each label supported by at least two of the three model consensuses.
 
-1. **Prevalence baseline:** predict every emotion occurring in at least 10% of training records.
-2. **TF-IDF + Logistic Regression:** eight one-versus-rest binary classifiers.
-3. **TF-IDF + Linear SVM:** eight one-versus-rest binary classifiers.
+This differs from a single vote across nine runs. Preserve records without a combined consensus label. Recalculate correctness and human/human–LLM Cohen's kappa from aligned records, including shared-iteration agreement summaries.
 
-Always-negative and most-frequent-label rules are additional diagnostics.
+The notebook generates Tables 1–6 and the proposal's Figures 3 and 4. Higher-temperature files are inventoried and validated separately. Historical time/cost calculations use the released workbook, not current API prices or new provider calls.
 
-The fixed search contains **12 configurations**:
+### Experiment 3: Machine Learning Classification
 
-| Setting | Values |
+Compare a training-prevalence baseline with TF-IDF Logistic Regression and Linear SVM using eight one-versus-rest classifiers. Always-negative and most-frequent-label predictors are additional diagnostics.
+
+| Search parameter | Values |
 | --- | --- |
 | Algorithm | Logistic Regression, Linear SVM |
 | TF-IDF n-grams | Unigrams; unigrams and bigrams |
 | C | 0.5, 1.0, 2.0 |
-| Maximum features | 5,000 |
+| Maximum vocabulary | 5,000 features |
+| Term weighting | Sublinear TF |
+| Accent handling | Unicode accent stripping |
+| Stop-word removal | None |
 | Class weights | None |
-| Stop-word removal | None; negations remain available |
-| Random seed | 42 |
+| Seed | 42 |
 
-Fit TF-IDF only on training text. Select configurations using **validation macro F1**, then micro F1. Ties prefer unigrams and smaller C. Freeze the choices before scoring test data.
+The fixed search evaluates 12 configurations. Selection maximizes validation macro-F1, then micro-F1; ties prefer unigrams and smaller C. The selected LR uses unigrams and C=2. The selected SVM uses unigrams/bigrams and C=2 and is the overall validation winner.
 
-Validation selected:
+### Experiment 4: Balanced Class Weights
 
-- **LR:** unigrams, C=2.
-- **SVM:** unigrams and bigrams, C=2.
-- **Overall ML winner:** the unweighted SVM.
+Reuse the Experiment 3 winner and change only `class_weight=None` to `class_weight="balanced"`. Keep the algorithm, feature parameters, C, partitions, and default decision boundaries fixed.
 
-### Experiment 4: Improving Rare-Emotion Classification
-
-Reuse the validation-selected Experiment 3 SVM and change only:
-
-```python
-class_weight=None        # Original model
-class_weight="balanced"  # Modified model
-```
-
-Keep features, C, random seed, label order, partitions, and default decision rules fixed. Reuse the original fitted baseline and verify its test predictions against Experiment 3. Fit the balanced copy using training data only; its vocabulary and IDF must match the original.
-
-For each emotion's binary classifier, balanced weights are:
+For each emotion's binary classifier:
 
 ```text
-Positive weight = training_rows / (2 × positive_training_examples)
-Negative weight = training_rows / (2 × negative_training_examples)
+Positive weight = training rows / (2 × positive training examples)
+Negative weight = training rows / (2 × negative training examples)
 ```
 
-Select the model for the next experiment using validation results. No emotion-specific thresholds are tuned in Experiment 4.
+The balanced SVM is selected for Experiment 5 using validation macro-F1, with micro-F1 as the tie-breaker. The original unweighted pipeline remains available.
 
-### Leakage Prevention
+### Experiment 5: Emotion-Specific Thresholds
 
-- Keep records sharing review IDs or normalized sentence text in connected groups.
-- Verify group and record separation across partitions.
-- Screen long texts for conservative lexical near duplicates using three-word-shingle Jaccard similarity of at least 0.95.
-- Fit vocabulary, IDF, and classifiers on training data only.
-- Use validation data for configuration selection.
-- Use the same test identities and eight target labels for supervised comparisons.
-- Retain split manifests, frozen choices, source checks, and predictions for auditing.
+Use the selected fitted model without refitting. Search 0.10–0.90 in steps of 0.05 for each emotion, including the original decision boundary as an additional candidate.
 
-The lexical screen is not a guarantee that every semantic paraphrase is detected.
+For Logistic Regression, these are literal probability thresholds. The executed experiment uses Linear SVM, whose margins are not probabilities. For SVM, the grid specifies positions across each emotion's validation margin range:
+
+```python
+raw_cutoff = validation_min + grid_value * (validation_max - validation_min)
+```
+
+This mapping is a fraction of the score range, not a probability or percentile. The original SVM cutoff is zero. Predictions use a strict `score > cutoff` comparison.
+
+Select maximum validation F1 subject to precision of at least 40% and at least one positive prediction. Break ties by precision, preference for the default, and proximity to the default. Freeze the resulting raw cutoffs before test evaluation; never rescale them on a new review or test batch.
+
+Fear has no feasible candidate under this grid and constraint, so the tuned policy abstains and records the failure. The validation precision floor is not a test-set guarantee. The helper supports LR thresholds, but the saved experiment does not report a separately tuned LR model.
+
+### Experiment 6: Interactive Review Classification
+
+The input interface accepts a review and displays one or more predicted emotions. The default interface uses the Experiment 4 balanced model; the Experiment 5 cutoff artifact is optional. This is an inference demonstration, not a new accuracy experiment or model-selection result.
+
+Prefer one sentence at a time because the evaluated dataset uses sentence-level examples. The interface does not provide calibrated confidence percentages, detect Reject, or establish a Neutral label.
 
 ## Results
 
+All supervised values in this section are the **attached notebook's saved outputs**, rounded to four decimal places. All approaches use the same 163 eligible test records.
+
 ### Paper Reproduction
 
-| Metric | Published | Recomputed |
+| Metric | Published target | Recomputed |
 | --- | ---: | ---: |
-| Mean final human-pair kappa | Approximately 0.69 | 0.694 |
+| Final human-pair agreement | Approximately 0.69 | 0.694 |
 | Combined LLM precision | 70.68% | 70.68% |
 | Combined LLM recall | 66.81% | 66.80% |
 | Combined LLM paper-compatible F1 | 68.69% | 68.68% |
 
-All **30 per-label percentages in the paper's Table IV** match at the printed precision. Small aggregate differences remain visible in the comparison files.
+The notebook retains published-versus-measured comparisons and distinguishes paper-compatible aggregate scores from standard F1.
 
-**Metric convention:** Table II is closely recovered using the harmonic mean of support-weighted precision and recall. The printed human-table F1 columns are recovered using an arithmetic mean of precision and recall, which is not standard F1. These are inferred reproduction conventions; the new supervised experiments use standard F1 throughout.
+### Experiment 3: Held-Out Comparison
 
-Historical time and cost are recomputed from the authors' workbook. Its annotation-cost columns exclude separately reported guideline processing. These figures are not current API prices or newly measured bills.
+| Approach | Micro precision | Micro recall | Micro-F1 | Macro-F1 | Rare macro-F1 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Prevalence baseline | 0.2362 | 0.8508 | 0.3697 | 0.1865 | 0.0000 |
+| Logistic Regression | 0.8226 | 0.2818 | 0.4198 | 0.1907 | 0.0000 |
+| Linear SVM | 0.7250 | 0.4807 | 0.5781 | 0.3287 | 0.0417 |
 
-### Experiment 3: Held-Out Baselines
+The notebook also records fit time, prediction time, and serialized model size. These measurements depend on the runtime and do not represent total search cost, peak RAM, or deployment cost.
 
-All approaches use the same **163 test records** and eight emotions. Scores are fractions between zero and one.
+### Experiment 4: Class Weighting
 
-| Approach | Micro precision | Micro recall | Micro F1 | Macro F1 |
-| --- | ---: | ---: | ---: | ---: |
-| Prevalence baseline | 0.2362 | 0.8508 | 0.3697 | 0.1865 |
-| Logistic Regression | 0.8226 | 0.2818 | 0.4198 | 0.1907 |
-| Linear SVM | 0.7083 | 0.4696 | **0.5648** | **0.2990** |
-
-Both unweighted learned models have zero F1 for the four named rare emotions on this test split, establishing the Experiment 4 baseline.
-
-### Experiment 4: Class-Weighting Comparison
-
-| Metric | Original SVM | Balanced SVM |
+| Metric | Unweighted SVM | Balanced SVM |
 | --- | ---: | ---: |
-| Micro precision | 0.7083 | 0.6483 |
-| Micro recall | 0.4696 | 0.5193 |
-| Micro F1 | 0.5648 | 0.5767 |
-| Macro F1 | 0.2990 | 0.3408 |
-| Rare-emotion macro F1 | 0.0000 | 0.0742 |
+| Validation macro-F1 | 0.3511 | 0.3654 |
+| Test micro precision | 0.7250 | 0.6741 |
+| Test micro recall | 0.4807 | 0.5028 |
+| Test micro-F1 | 0.5781 | 0.5759 |
+| Test macro-F1 | 0.3287 | 0.3434 |
+| Test rare-emotion macro-F1 | 0.0417 | 0.0742 |
 
-| Rare emotion | Positive test examples | Original F1 | Weighted F1 |
+Weighting improves validation and test macro-F1 and test rare-emotion macro-F1. Test micro-F1 decreases slightly, so the improvement is not uniform across metrics.
+
+### Experiment 5: Threshold Tuning
+
+| Metric | Default balanced SVM | Tuned cutoffs |
+| --- | ---: | ---: |
+| Validation micro-F1 | 0.5629 | 0.6171 |
+| Validation macro-F1 | 0.3654 | 0.4450 |
+| Validation rare-emotion macro-F1 | 0.1548 | 0.2549 |
+| Test micro precision | 0.6741 | 0.5604 |
+| Test micro recall | 0.5028 | 0.5635 |
+| Test micro-F1 | 0.5759 | 0.5620 |
+| Test macro-F1 | 0.3434 | 0.3277 |
+| Test rare-emotion macro-F1 | 0.0742 | 0.0662 |
+
+Tuning increases test recall but reduces overall precision and F1. Validation macro-F1 increases by 0.0796 while test macro-F1 decreases by 0.0157.
+
+| Rare emotion | Positive test examples | Default test F1 | Tuned test F1 |
 | --- | ---: | ---: | ---: |
 | Fear | 2 | 0.0000 | 0.0000 |
 | Anger | 4 | 0.0000 | 0.0000 |
-| Disgust | 11 | 0.0000 | 0.1429 |
-| Surprise | 10 | 0.0000 | 0.1538 |
+| Disgust | 11 | 0.1538 | 0.1538 |
+| Surprise | 10 | 0.1429 | 0.1111 |
 
-Weighting improves average F1 and recall, while micro precision falls. It improves Disgust and Surprise but leaves Fear and Anger unresolved. Joy F1 decreases, and Anticipation F1 is unchanged. The full table reports Precision, Recall, and F1 for all eight emotions.
+No rare emotion improves its test F1. Sadness improves from 0.5859 to 0.6042, while Joy and Trust decline. Report these mixed results rather than claiming that threshold tuning improves every emotion.
 
-Validation macro F1 also improves from **0.3475 to 0.3862**, so the balanced SVM is selected for Experiment 5 independently of the test results.
+## Overfitting Assessment
 
-## Repository Structure
+### Findings from the Attached Notebook
 
-Use the completion bundle as the repository root. The original replication resources are extracted separately into `emotion_replication/`.
+Experiment 5 shows a pattern **consistent with validation overfitting**: the optimization improves validation F1 substantially but reduces held-out test F1. With only 166 validation records and very few rare positives, chosen cutoffs can adapt to individual validation examples.
 
-```text
-.
-├── README.md
-├── Emotion_Classification_Project_3_Experiments_3_4_Completed.ipynb
-├── Experiment_2_Figures_3_4.py
-├── Experiment_3_Ready_To_Paste.ipynb
-├── Experiment_3_Complete.py
-├── Experiment_3_Tests.py
-├── Experiment_4_Ready_To_Paste.ipynb
-├── Experiment_4_Complete.py
-├── Experiment_4_Tests.py
-├── Experiment_4_README.md
-├── requirements.txt
-├── AUTHORS_LICENSE.md
-├── ground-truth.xlsx
-├── emotion_replication/              # Extract the original replication ZIP here
-│   ├── replication.py
-│   ├── supplementary.py
-│   └── data/
-├── experiment_3_results/
-│   ├── split_manifest.csv
-│   ├── validation_search.csv
-│   ├── frozen_selection.json
-│   ├── comparison_overall.csv
-│   ├── comparison_per_emotion.csv
-│   ├── best_pipeline.joblib
-│   └── ...
-└── experiment_4_results/
-    ├── comparison_all_emotions.csv
-    ├── comparison_rare_emotions.csv
-    ├── comparison_overall.csv
-    ├── validation_comparison.csv
-    ├── training_class_weights.csv
-    ├── frozen_selection.json
-    ├── weighted_pipeline.joblib
-    ├── best_after_experiment4.joblib
-    └── ...
-```
+This is evidence of poor generalization of the chosen thresholds, not proof of a single cause or a statistical significance result. Class imbalance, partition differences, and sampling variation also affect the scores.
 
-## Getting Started
+Experiment 4's macro-F1 improvement appears in both validation and test, so class weighting generalizes more consistently on this split. Experiment 6 does not fit anything and therefore introduces no additional training overfitting; it inherits the selected model's limitations.
+
+### Independent Training Diagnostic
+
+The attached notebook does not report a complete train/validation/test performance table for the selected models. A separate audit fitted the same three selected configurations on the exact uploaded dataset and matching grouped partition, using the pinned local environment. It did not tune configurations or overwrite the notebook's models.
+
+| Model | Training macro-F1 | Validation macro-F1 | Test macro-F1 |
+| --- | ---: | ---: | ---: |
+| Logistic Regression | 0.3451 | 0.2094 | 0.1907 |
+| Unweighted SVM | 1.0000 | 0.3475 | 0.2990 |
+| Balanced SVM | 1.0000 | 0.3862 | 0.3408 |
+
+Perfect training F1 combined with substantially lower unseen-data F1 is a strong training-overfitting signal for the SVMs in this rerun. LR also has a generalization gap, alongside low overall performance.
+
+**These diagnostic rerun figures differ from the saved notebook's SVM outputs.** The cause was not established. Runtime/library differences or notebook execution history require investigation; neither is asserted as the confirmed explanation. Do not combine results from the two runs into one model comparison.
+
+See [the overfitting review](OVERFITTING_REVIEW.md), [diagnostic metrics](overfitting_audit/local_training_validation_test.csv), and [saved notebook evidence](overfitting_audit/notebook_evidence.json).
+
+### Next Evaluation Steps
+
+- Add train/validation/test diagnostics in the same Colab session to confirm the current fitted models' training gaps.
+- Compare stronger regularization and smaller feature spaces using grouped cross-validation within development data.
+- Where feasible, assess threshold stability with out-of-fold predictions and resampling that respects review/text groups and rare-label support.
+- Freeze the protocol before further testing. Repeated decisions based on the same observed test results weaken its role as an independent evaluation.
+- Report uncertainty and support counts; one or two rare examples can materially change F1.
+
+These are proposed next steps, not completed experiments.
+
+## Running the Project
 
 ### Google Colab
 
-1. Open the canonical completed notebook in Colab.
-2. Run its cells in order.
-3. Supply `ground-truth.xlsx` and the original `emotion_replication_bundle.zip` when the earlier setup cells request them.
-4. Review the paper-reproduction sections, then **8.3 Experiment 3** and **8.4 Experiment 4** at the end.
-5. Download generated CSVs, plots, and models from the runtime if you want to preserve a new run.
+1. Open `Emotion_Classification_Project_3.ipynb` in Colab.
+2. Run the notebook in order, including the grouped split and Experiments 3–6.
+3. Upload `ground-truth.xlsx` when prompted.
+4. Provide `emotion_replication_bundle.zip` when the paper-reproduction setup requests it. It must contain the replication scripts and original human/LLM annotation resources.
+5. Review generated tables and plots, then download any artifacts you want to preserve.
 
-A CPU runtime is sufficient. No GPU, API key, or paid LLM call is required for the completed experiments.
+A CPU runtime is sufficient. Reproducing the saved LLM evaluations and using the interactive classifier requires no new provider API calls.
 
-> The Experiment 3/4 completion bundle includes their dataset and saved artifacts. It does not replace the full historical LLM annotation package required by Experiments 1–2.
+### Local Environment
 
-### Local Python Setup
+The notebook includes Colab-specific upload/mount cells. For local execution, replace those setup steps with local data paths; installing dependencies alone does not make those Colab cells portable.
 
-Use Python **3.11 or 3.12**. Validation was performed with Python 3.12.
-
-From the extracted completion-bundle folder:
+The existing local artifact environment uses Python 3.12 and the versions in `requirements.txt`:
 
 ```bash
 python3 -m venv .venv
@@ -312,127 +316,118 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-Open the notebook with this environment as its Python kernel, or reuse the functions in `Experiment_3_Complete.py` and `Experiment_4_Complete.py`.
+Direct requirements include NumPy, SciPy, pandas, openpyxl, scikit-learn, matplotlib, and the notebook execution tools. `joblib` is installed through scikit-learn and is used for artifacts.
 
-### Continue Manually in an Existing Notebook
+The pinned environment supports the separate local audit. The exact package versions of the attached Colab run are not recorded in its saved outputs; exact numerical agreement is therefore not established.
 
-Copy the cells in this order:
+## Interactive Review Classification
 
-1. `Experiment_3_Ready_To_Paste.ipynb`
-2. `Experiment_4_Ready_To_Paste.ipynb`
-
-Experiment 3 requires your existing grouped `train_df`, `val_df`, and `test_df`. It creates:
+Run the Experiment 6 helper and model-setup cells first. The setup can use the current `best_pipeline_after_exp4` variable or its saved model file.
 
 ```python
-best_pipeline
-exp3_train_df
-exp3_val_df
-exp3_test_df
-EXP3_OUT
+EXP6_MODE = "default"  # Or "tuned" for Experiment 5's fixed cutoffs.
 ```
 
-Experiment 4 uses those variables and creates:
+After changing the mode, rerun the setup cell, then:
 
 ```python
-exp4_original_pipeline
-exp4_weighted_pipeline
-exp4_comparison
-exp4_summary
-best_pipeline_after_exp4
+exp6_result = enter_review(exp6_model, mode=EXP6_MODE)
 ```
 
-Use the filtered `exp3_*` dataframes for subsequent experiments. Creating the grouped split alone does not retrain earlier models; the completed Experiment 3 section performs that training explicitly.
+The cell asks:
 
-## Outputs and Saved Models
+```text
+Enter your review:
+```
 
-| Output | Purpose |
+Enter a review and press Enter. The model prints the predicted emotions. Rerun the cell for another review. Alternatively:
+
+```python
+result = classify_review(
+    "I love the app, but the latest update keeps crashing.",
+    exp6_model,
+    mode=EXP6_MODE,
+)
+print(result["classification"])
+```
+
+After a runtime restart, rerun the model-producing cells or upload the saved artifact and set its path. For tuned inference, use the helper that applies the saved raw cutoffs: the contained pipeline's ordinary `.predict()` ignores the tuned cutoffs.
+
+**Current display issue:** The attached final cell predicts a fixed example, asks for user input, then prints the fixed example's classification under “Predicted overall emotion(s).” That final line can appear to describe the entered review. Use `exp6_result["classification"]` for the entered review, or keep only the `enter_review(...)` call above. This review documents the issue without changing the original notebook.
+
+## Files and Outputs
+
+The notebook is the primary implementation. The following layout summarizes the notebook, review files, and runtime resources; it is not a claim that every historical resource is included in a single download.
+
+```text
+.
+├── README.md
+├── Emotion_Classification_Project_3.ipynb
+├── OVERFITTING_REVIEW.md
+├── Overfitting_Check_Ready_To_Paste.ipynb
+├── requirements.txt
+├── ground-truth.xlsx                         # Dataset input
+├── emotion_replication/                      # Original replication resources
+│   ├── replication.py
+│   ├── supplementary.py
+│   ├── data/
+│   └── experiment_2/                         # Recomputed figures and tables
+├── manual_continuation_results/              # Earlier reproduction tables
+├── experiment_3_results/                     # Runtime-generated artifacts
+├── experiment_4_results/
+├── experiment_5_results/
+└── overfitting_audit/                        # Separate local review evidence
+    ├── local_training_validation_test.csv
+    └── notebook_evidence.json
+```
+
+Important runtime artifacts:
+
+| File | Purpose |
 | --- | --- |
-| `experiment_3_results/split_manifest.csv` | Exact supervised partition identities |
-| `experiment_3_results/validation_search.csv` | All 12 configuration results |
-| `experiment_3_results/comparison_overall.csv` | Baseline/LR/SVM scores and efficiency measurements |
-| `experiment_3_results/comparison_per_emotion.csv` | Per-emotion Precision, Recall, F1, and support |
-| `experiment_3_results/best_pipeline.joblib` | Validation-selected unweighted pipeline |
-| `experiment_4_results/comparison_all_emotions.csv` | Controlled comparison for all eight emotions |
-| `experiment_4_results/comparison_rare_emotions.csv` | Rare-emotion comparison |
-| `experiment_4_results/validation_comparison.csv` | Validation scores used for the next model choice |
-| `experiment_4_results/training_class_weights.csv` | Training counts and calculated weights |
-| `experiment_4_results/best_after_experiment4.joblib` | Validation-selected pipeline for Experiment 5 |
-| `experiment_4_results/per_sentence_changes.csv` | Changes in wrong-label counts per sentence |
-| `*/frozen_selection.json` | Saved selection rules and choices |
-| `*/label_order.json` | Ordered target labels |
-| `*/VALIDATION.json`, `*/TEST_RESULTS.txt` | Execution and verification records |
+| `experiment_3_results/split_manifest.csv` | Exact eligible partition identities and order |
+| `experiment_3_results/validation_search.csv` | All 12 configuration scores |
+| `experiment_3_results/frozen_selection.json` | Validation-only configuration selection |
+| `experiment_3_results/best_pipeline.joblib` | Selected unweighted pipeline |
+| `experiment_4_results/comparison_all_emotions.csv` | Per-emotion class-weighting comparison |
+| `experiment_4_results/best_after_experiment4.joblib` | Validation-selected pipeline used by the next experiment |
+| `experiment_5_results/validation_thresholds.csv` | Cutoffs, validation metrics, and constraint status |
+| `experiment_5_results/validation_threshold_search.csv` | Evaluated threshold candidates |
+| `experiment_5_results/frozen_thresholds.json` | Frozen raw cutoffs and provenance |
+| `experiment_5_results/comparison_all_emotions.csv` | Default/tuned test precision, recall, and F1 |
+| `experiment_5_results/comparison_rare_emotions.csv` | Rare-emotion effects |
+| `experiment_5_results/threshold_optimized_model.joblib` | Dictionary containing the pipeline, cutoffs, and metadata |
 
-The original `best_pipeline` remains unweighted. The selected balanced model is available as `best_pipeline_after_exp4` and as its saved artifact.
+Local `experiment_3_results`–`experiment_5_results` files from previous completion bundles represent earlier runs. They must not be presented as the artifacts that produced the newly attached notebook's different SVM scores. Regenerate them in one clean run before packaging final results.
 
-```python
-from pathlib import Path
-import json
-import joblib
+## Verification and Reproducibility
 
-folder = Path("experiment_4_results")
-pipeline = joblib.load(folder / "best_after_experiment4.joblib")
-labels = json.loads((folder / "label_order.json").read_text())
+This review inspected all 163 cells and their saved outputs. No saved error outputs were found. This does not establish that a fresh “Run all” completes: original Colab uploads, external resources, and interactive input were not rerun during this review.
 
-sentences = ["I like the app, but it crashes whenever I open the camera."]
-predictions = pipeline.predict(sentences)
+The audit verified that the uploaded dataset embedded in the notebook exactly matches the local diagnostic dataset and that recreated supervised identities match the prior split manifest. It fitted three fixed diagnostic models and left the original notebook unchanged.
 
-for sentence, row in zip(sentences, predictions):
-    emotions = [label for label, value in zip(labels, row) if value == 1]
-    print(sentence)
-    print(emotions or ["No predicted emotion"])
-```
+The companion diagnostic notebook checks current model performance without fitting or selecting anything. Add it after Experiment 5 to obtain training gaps for the current Colab model objects.
 
-Fit time includes the selected model's feature fitting and training, not the complete search budget. Prediction time includes text transformation. Model KiB is serialized file size, not RAM usage. Timings vary across machines.
+For a final reproducible release, record Python/package versions, execute from a clean runtime, export current CSVs and models together, and preserve the dataset hash, split manifest, selection files, and threshold metadata.
 
-## Validation
+## Limitations and Remaining Work
 
-Run the artifact checks from the completion-bundle folder:
-
-```bash
-python Experiment_3_Tests.py
-python Experiment_4_Tests.py
-```
-
-| Component | Executed new code cells | Checks passed |
-| --- | ---: | ---: |
-| Experiment 3 | 11 | 8 |
-| Experiment 4 | 10 | 8 |
-
-Checks cover partition identities, training-only features, validation-based selection, baseline rules, metric calculations, identical test cohorts, class-weight isolation, unchanged baseline predictions, and saved-model compatibility.
-
-New cells were executed locally in IPython. The original Colab upload/mount cells were not rerun locally. No provider API calls were made.
-
-## Limitations
-
-- Rare emotions have very few positive test examples, especially Fear and Anger.
-- These are single-split results from a small dataset, not universal model rankings.
-- Weighting does not improve every emotion or every metric.
-- The 1,274-versus-1,272 label discrepancy remains documented rather than edited away.
-- Released LLM outputs are historical annotations, not new blind generations. Their guidelines were developed through the original annotation study.
-- Full-dataset ten-label reproduction scores are not directly comparable to eight-label held-out ML scores.
-- Exact lexical grouping cannot establish absence of all semantic overlap.
-- Local timing and serialized size do not provide a complete memory or deployment-cost analysis.
-
-## Remaining Work
-
-- [ ] **Experiment 5:** optimize a separate threshold for each emotion using validation data.
-- [ ] Evaluate LR probability thresholds from 0.10 to 0.90 in 0.05 increments, where applicable.
-- [ ] Handle SVM decision-margin thresholds explicitly; raw SVM scores are not probabilities.
-- [ ] Apply the proposal's validation precision constraint of at least 40%, recording cases with no feasible threshold.
-- [ ] Freeze thresholds before test evaluation and compare default versus tuned P/R/F1.
-- [ ] Complete the final same-test, eight-emotion comparison with the released LLM baselines.
-- [ ] Consolidate the final research report, error analysis, and uncertainty discussion.
-
-Test outcomes have already been observed during these experiments. Preserve the fixed protocol rather than repeatedly changing configurations or seeds to improve the same test set.
+- The dataset is small and imbalanced; test support is only two Fear and four Anger examples.
+- Strong SVM training fit does not translate into comparable unseen-data F1.
+- Validation-selected thresholds do not improve overall test F1 in this run.
+- Passing exact-overlap checks does not prove the absence of every semantic duplicate.
+- The split groups reviews and repeated sentences, not entire applications. These results do not establish performance on wholly unseen apps.
+- Released LLM annotations are historical outputs, not new blind model generations.
+- Model inference can miss emotions, assign incorrect emotions, or return no label.
+- Current runtime artifacts and saved notebook scores need consolidation into one clean reproducible run.
+- The final same-test, eight-label ML-versus-LLM comparison, grouped cross-validation, uncertainty analysis, and final research report remain pending.
 
 ## References and Attribution
 
-### Original Research
+Quim Motger, Marc Oriol, Max Tiessler, Xavier Franch, and Jordi Marco. *What About Emotions? Guiding Fine-Grained Emotion Extraction from Mobile App Reviews.* 2025 IEEE 33rd International Requirements Engineering Conference (RE), pp. 6–18.
 
-Quim Motger, Marc Oriol, Max Tiessler, Xavier Franch, and Jordi Marco. **What About Emotions? Guiding Fine-Grained Emotion Extraction from Mobile App Reviews.** 2025 IEEE 33rd International Requirements Engineering Conference (RE), pp. 6–18.
-
-- [Paper DOI](https://doi.org/10.1109/RE63999.2025.00012)
-- [Dataset and replication package](https://doi.org/10.6084/m9.figshare.28548638)
+- [Research paper](https://doi.org/10.1109/RE63999.2025.00012)
+- [Released dataset and replication package](https://doi.org/10.6084/m9.figshare.28548638)
 
 ```bibtex
 @inproceedings{motger2025whataboutemotions,
@@ -448,6 +443,4 @@ Quim Motger, Marc Oriol, Max Tiessler, Xavier Franch, and Jordi Marco. **What Ab
 }
 ```
 
-### License Notices
-
-The included original authors' materials are accompanied by `AUTHORS_LICENSE.md` (GNU GPL version 3). Preserve upstream attribution and license notices when reusing those resources. The academic project extends and evaluates the published work; it does not claim authorship of the original dataset, annotation guidelines, or LLM annotations.
+Original dataset, annotations, guidelines, and replication materials belong to their respective authors. The project adds reproduction analysis and supervised experiments. The local resource bundle includes the authors' `AUTHORS_LICENSE.md`; no separate license for newly authored project code is declared in this README.
